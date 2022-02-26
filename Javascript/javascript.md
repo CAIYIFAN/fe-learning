@@ -201,3 +201,4 @@
 65. 手写promise.all(写的不好没考虑到catch)，就问了catch还有then第二个函数得关系
 66. Promise的链式调用
 67. 把setTimeout封装成Promise
+
