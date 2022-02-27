@@ -204,7 +204,7 @@ class ProfilePage extends React.Component {
 - getDerivedStateFromProps: `static getDerivedStateFromProps(nextProps, prevState)`，这是个静态方法,当我们接收到新的属性想去修改`state`，可以使用`getDerivedStateFromProps`
 - render: `render`函数是纯函数，只返回需要渲染的东西，不应该包含其它的业务逻辑,可以返回原生的DOM、React组件、Fragment、Portals、字符串和数字、Boolean和null等内容
 - componentDidMount: 组件装载之后调用，此时可以获取到DOM节点并操作，比如对canvas，svg的操作，服务器请求，订阅都可以写在这个里面，但是记得在`componentWillUnmount`中取消订阅。
-
+ 
 #### 更新阶段
 
 - getDerivedStateFromProps: 此方法在更新个挂载阶段都可能会调用
@@ -240,51 +240,29 @@ getSnapshotBeforeUpdate 会在最终的 render 之前被调用，也就是说在
 
 componentDidMount
 
-componentWillReceiveProps(不能操作)
-
-shouldComponentUpdate(不能操作)
-
-componentWillUpdate(不能操作)
-
-render(不能操作)
-
 componentDidUpdate
-
-componentWillUnmount(不能操作)
 
 #### 可以修改state的生命周期
 
-componentWillMount
+getDerivedStateFromProps
 
 componentDidMount
 
 shouldComponentUpdate
 
-componentWillReceiveProps
+getSnapshotBeforeUpdate
 
 componentDidUpdate
 
-#### 调用setState之后执行那些生命周期
+#### 组件生命周期的执行次数是什么样子的？
 
-componentWillMount
 
-render
+只执行一次： constructor、componentDidMount
 
-componentDidMount
-
-shouldComponentUpdate
-
-#### 件生命周期的执行次数是什么样子的？？？
-
-```delphi
-只执行一次： constructor、componentWillMount、componentDidMount
-
-执行多次：render 、子组件的componentWillReceiveProps、componentWillUpdate、componentDidUpdate
+执行多次：render 、getDerivedStateFromProps、getSnapshotBeforeUpdate、shouldComponentUpdate、componentDidUpdate
 
 有条件的执行：componentWillUnmount（页面离开，组件销毁时）
 
-不执行的：根组件（ReactDOM.render在DOM上的组件）的componentWillReceiveProps（因为压根没有父组件给传递props）
-```
 
 #### 父子组件生命周期顺序
 
@@ -294,10 +272,10 @@ shouldComponentUpdate
 **如果不涉及到setState更新，第一次渲染的顺序如下：**
 ![img](https://images2018.cnblogs.com/blog/1414709/201808/1414709-20180830111229956-69121477.png)
 
-```delphi
-App：   constructor --> componentWillMount -->  render --> 
-parent: constructor --> componentWillMount -->  render --> 
-child:    constructor --> componentWillMount -->  render  --> 
+```javascript
+App：   constructor --> getDerivedStateFromProps -->  render --> 
+parent: constructor --> getDerivedStateFromProps -->  render --> 
+child:    constructor --> getDerivedStateFromProps -->  render  --> 
 componentDidMount (child) -->  componentDidMount (parent) --> componentDidMount (App)
 ```
 
@@ -305,29 +283,30 @@ componentDidMount (child) -->  componentDidMount (parent) --> componentDidMount 
 
 ![img](https://images2018.cnblogs.com/blog/1414709/201808/1414709-20180830111331526-1907166573.png)
 
-```rust
-App：   componentWillUpdate --> render --> 
-parent: componentWillReceiveProps --> componentWillUpdate --> render --> 
-child:    componentWillReceiveProps --> componentWillUpdate --> render -->
-componentDidUpdate (child) -->  componentDidUpdate (parent) --> componentDidUpdate (App)
+```javascript
+App：   getDerivedStateFromProps --> shouldComponentUpdate --> render --> 
+parent: getDerivedStateFromProps --> shouldComponentUpdate --> render --> 
+child:    getDerivedStateFromProps --> shouldComponentUpdate --> render -->
+getSnapshotBeforeUpdate(child) --> componentDidUpdate (child) -->  getSnapshotBeforeUpdate(parent) --> componentDidUpdate (parent) --> getSnapshotBeforeUpdate(App) -->  componentDidUpdate (App)
 ```
 
 **那如果是触发parent的setState呢？**
 
 ![img](https://images2018.cnblogs.com/blog/1414709/201808/1414709-20180830111503596-744353039.png)
 
-```rust
-parent： componentWillUpdate --> render --> 
-child:     componentWillReceiveProps --> componentWillUpdate --> render --> 
-componentDidUpdate (child) -->  componentDidUpdate (parent) 
+```javascript
+parent： getDerivedStateFromProps --> shouldComponentUpdate -->  render --> 
+child:     getDerivedStateFromProps --> shouldComponentUpdate -->  render --> 
+getSnapshotBeforeUpdate(child) --> componentDidUpdate (child) -->  getSnapshotBeforeUpdate(parent) --> componentDidUpdate (parent) --> 
 ```
 
 **那如果是只是触发了child组件自身的setState呢？**
 
 ![img](https://images2018.cnblogs.com/blog/1414709/201808/1414709-20180830111543126-1591848462.png)
 
-```rust
-child： componentWillUpdate --> render -->  componentDidUpdate (child)
+```javascript
+child:     getDerivedStateFromProps --> shouldComponentUpdate -->  render --> 
+getSnapshotBeforeUpdate(child) --> componentDidUpdate (child) -->
 ```
 
 ##### 结论：
@@ -354,215 +333,6 @@ child： componentWillUpdate --> render -->  componentDidUpdate (child)
 销毁页面：parent-componentWillUnmount -> child-componentWillUnmount
 
 ### Hooks
-
-#### **react添加hook的动机**
-
-**Hook 是 React 16.8 的新增特性。它可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。我们来讨论下添加hook的动机。**
-
-##### **1、在组件之间复用状态逻辑很难**
-
-React 没有提供将可复用性行为“附加”到组件的途径（例如，把组件连接到 store）。使得复用状态逻辑很难，举个栗子
-
-我们假设有个ChatAPI可以订阅好友的在线状态，现在想要实现好友在线时，展示onLine字符，好友不在线时展示offLine字符。其中ChatAPI是现有模块，可以直接使用，实现如下：
-
-```js
-import React, { useState, useEffect } from 'react';
-function FriendStatus(props) {
-  const [isOnline, setIsOnline] = useState(null);
-  useEffect(() => {
-    function handleStatusChange(status) {
-      setIsOnline(status.isOnline);
-    }
-    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
-    return () => {
-      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
-    };
-  });
-  if (isOnline === null) {
-    return 'Loading...';
-  }
-  return isOnline ? 'Online' : 'Offline';
-}
-```
-
-现在我们假设聊天应用中有一个联系人列表，当用户在线时需要把名字设置为绿色。我们可以把上面类似的逻辑复制并粘贴到 FriendListItem 组件中来，但这并不是理想的解决方案
-
-```js
-import React, { useState, useEffect } from 'react';
-function FriendStatus(props) {
-  const [isOnline, setIsOnline] = useState(null);
-  useEffect(() => {
-    function handleStatusChange(status) {
-      setIsOnline(status.isOnline);
-    }
-    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
-    return () => {
-      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
-    };
-  });
-  return (
-      <div style={ {color: isOnline?'green':'black'} }>                         
-{props.friend.name}
-      </div>
-  );
-}
-```
-
-以上在使用isOnline的逻辑是完全一样的，毫无疑问，我们想要复用这一块逻辑，如果你使用过 React 一段时间，你也许会熟悉一些解决此类问题的方案，比如 **render props** 和 **高阶组件**。但是
-
-1）、这类方案需要重新组织你的组件结构，这可能会很麻烦，使你的代码难以理解。
-2）、如果你在 React DevTools 中观察过 React 应用，你会发现由 providers，consumers，高阶组件，render props 等其他抽象层组成的组件会形成“嵌套地狱”。
-
-尽管我们可以在 DevTools 过滤掉它们，但这说明了一个更深层次的问题：React 需要为共享状态逻辑提供更好的原生途径。
-
-你可以使用 Hook 从组件中提取状态逻辑，使得这些逻辑可以单独测试并复用。Hook 使你在无需修改组件结构的情况下复用状态逻辑。这使得在组件间或社区内共享 Hook 变得更便捷。我们可以用自定义hook的方式来 复用状态逻辑，**自定义 Hook 是一个函数，其名称以 “use” 开头，函数内部可以调用其他的 Hook。** 使用此技术复用状态逻辑如下：
-
-```js
-import { useState, useEffect } from 'react';
-
-function useFriendStatus(friendID) {
-  const [isOnline, setIsOnline] = useState(null);
-
-  useEffect(() => {
-    function handleStatusChange(status) {
-      setIsOnline(status.isOnline);
-    }
-
-    ChatAPI.subscribeToFriendStatus(friendID, handleStatusChange);
-    return () => {
-      ChatAPI.unsubscribeFromFriendStatus(friendID, handleStatusChange);
-    };
-  });
-
-  return isOnline;
-}
-```
-
-使用自定义hook的方法如下：
-
-```js
-function FriendStatus(props) {
-  const isOnline = useFriendStatus(props.friend.id);
-  if (isOnline === null) {
-    return 'Loading...';
-  }
-  return isOnline ? 'Online' : 'Offline';
-}
-
-function FriendListItem(props) {
-  const isOnline = useFriendStatus(props.friend.id);
-  return (
-    <li style={ { color: isOnline ? 'green' : 'black' } }>
-      {props.friend.name}
-    </li>
-  );
-}
-```
-
-以上我们用不同方式实现了 状态逻辑的复用，较render props和高阶组件，自定义hook简单、容易理解、学习成本低、易于维护、没有嵌套地狱等。
-
-##### **2、复杂组件变得难以理解**
-
-我们经常维护一些组件，组件起初很简单，但是逐渐会被状态逻辑和副作用充斥。每个生命周期常常包含一些不相关的逻辑。例如，组件常常在 componentDidMount 和 componentDidUpdate 中获取数据。但是，同一个 componentDidMount 中可能也包含很多其它的逻辑，如设置事件监听，而之后需在 componentWillUnmount 中清除。相互关联且需要对照修改的代码被进行了拆分，而完全不相关的代码却在同一个方法中组合在一起。如此很容易产生 bug，并且导致逻辑不一致。
-
-在多数情况下，不可能将组件拆分为更小的粒度，因为状态逻辑无处不在。这也给测试带来了一定挑战。同时，这也是很多人将 React 与状态管理库结合使用的原因之一。但是，这往往会引入了很多抽象概念，需要你在不同的文件之间来回切换，使得复用变得更加困难。
-
-为了解决这个问题，Hook 将组件中相互关联的部分拆分成更小的函数（比如设置订阅或请求数据），而并非强制按照生命周期划分。你还可以使用 reducer 来管理组件的内部状态，使其更加可预测。
-
-举个栗子来说明一下：
-
-```js
-import React from 'react';
-class FriendStatus extends React.Component{
-    componentDidMount(){
-        // 订阅好友在线状态
-        // 事件绑定
-        // 设置定时器
-    }
-    componentDidUpdate(){
-        // 取消订阅好友在线状态
-        // 订阅好友在线状态
-        
-        // 事件解绑
-        // 事件绑定
-        
-        // 清除定时器
-        // 设置定时器
-    }
-    componentWillUnMount(){
-        // 取消订阅好友在线状态
-        // 事件解绑
-        // 清除定时器
-    }
-}
-```
-
-以上事例我们发现，同一个模块的功能散列在不同的地方，这使代码可读性、复杂性和可维护性大大降低，也很容易造成内存泄漏、性能下降、容易出错等，我们来看下hook内我们的实现：
-
-```js
-function FriendStatus(props) {
-    useEffect(() => {
-        // 订阅好友在线状态
-        return () => {
-            // 取消订阅好友在线状态
-        }
-    })
-    useEffect(() => {
-        // 事件绑定
-        return () => {
-            // 事件解绑
-        }
-    })
-    useEffect(() => {
-        // 设置定时器
-        return () => {
-            // 清除定时器
-        }
-    })
-}
-```
-
-用hook后我们发现同一块的功能在一个useEffect内，对于代码可读性、复杂性和可维护性都有很大提升。
-
-##### **3、难以理解的 class**
-
-除了代码复用和代码管理会遇到困难外，我们还发现 class 是学习 React 的一大屏障。拿个栗子来讲下：
-
-```js
-class Example extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      count: 0
-    };
-  }
-  
-  handle() {
-    this.setState({ count: this.state.count + 1 })
-  }
-
-  render() {
-    return <button onClick={this.handle.bind(this)}>Click me</button>;
-  }
-}
-
-function Example(props) {
-  const [count, setCount] = useState(0);
-  return <button onClick={setCount(count+1)}>Click me</button>;
-}
-```
-
-
-你必须去理解 javascript 中 this 的工作方式，这与其他语言存在巨大差异。还不能忘记绑定事件处理器。没有稳定的语法提案，这些代码非常冗余。大家可以很好地理解 props，state 和自顶向下的数据流，但对 class 却一筹莫展。即便在有经验的 React 开发者之间，对于函数组件与 class 组件的差异也存在分歧，甚至还要区分两种组件的使用场景。
-
-另外，class 也给目前的工具带来了一些问题。例如，class 不能很好的压缩，并且会使热重载出现不稳定的情况。因此，我们想提供一个使代码更易于优化的 API。
-
-为了解决这些问题，Hook 使你在非 class 的情况下可以使用更多的 React 特性。 从概念上讲，React 组件一直更像是函数。而 Hook 则拥抱了函数，同时也没有牺牲 React 的精神原则。Hook 提供了问题的解决方案，无需学习复杂的函数式或响应式编程技术。
-
-接下来我们分析一下常用hook的实现原理，主要有一下几个hook：
-
-**useState、useReducer、useEffect、useLayoutEffect、useCallback、useMemo**。
-
 ####  Hooks 如何模拟类组件生命周期
 
 | class 组件               | Hooks 组件                |
