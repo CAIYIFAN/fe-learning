@@ -204,7 +204,7 @@ class ProfilePage extends React.Component {
 - getDerivedStateFromProps: `static getDerivedStateFromProps(nextProps, prevState)`，这是个静态方法,当我们接收到新的属性想去修改`state`，可以使用`getDerivedStateFromProps`
 - render: `render`函数是纯函数，只返回需要渲染的东西，不应该包含其它的业务逻辑,可以返回原生的DOM、React组件、Fragment、Portals、字符串和数字、Boolean和null等内容
 - componentDidMount: 组件装载之后调用，此时可以获取到DOM节点并操作，比如对canvas，svg的操作，服务器请求，订阅都可以写在这个里面，但是记得在`componentWillUnmount`中取消订阅。
- 
+
 #### 更新阶段
 
 - getDerivedStateFromProps: 此方法在更新个挂载阶段都可能会调用
@@ -456,8 +456,6 @@ export default App;
 
 3）**再次渲染**主要是根据setCount存储的更新信息来计算最新的state。
 
-好，我们上面大概讲了下useState做的主要的事情，那具体数据都是怎么流转的呢？react-fiber主要是围绕着fiber数据结构做一些更新存储计算等操作，那在这几个过程中fiber都经历了什么呢？带着这两个问题，我们来做一下讲解。
-
 **（1）首次渲染**
 
 我们知道hook可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。所以hook很大一个功能是存储state。在class组件中我们的state是存储在fiber.memoizedState字段的，是一个对象。同理在函数组件内hook（所有的hook，不止是useState）的信息也是存储在fiber.memoizedState字段.的。以上示例中，当我们第一次执行 **const [count, setCount] = useState(0)** 时，我们得到的fiber.memoizedState的数据结构如图所示：
@@ -575,7 +573,7 @@ function mountState( initialState ) {
 }
 ```
 
-mountWorkInProgressHook实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L545)。basicStateReducer是计算更新的方法，实现如下：
+basicStateReducer是计算更新的方法，实现如下：
 
 ```js
 function basicStateReducer(state, action) {
@@ -655,44 +653,11 @@ function updateReducer( reducer, initialArg, init ) {
   }
 ```
 
-其中updateWorkInProgressHook实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L566)。
-
 #### useState的注意事项
 
 ##### 1. 不能局部更新
 
-```
-function App() {
-const [user,setUser] = useState({name:'anqi', age: 18})
-const onClick = ()=>{
-setUser({
-name: 'Jack'
-})
-}
-return (
-<div className="App">
-<h1>{user.name}</h1>
-<h2>{user.age}</h2>
-<button onClick={onClick}>Click</button>
-</div>
-);
-}
- 
-```
-
 如果state是一个对象，里边有多个属性。在setUser的时候，如果只修改其中一个属性，会导致另一个变成undefined。**因为setState不会自动合并属性。**
-
-应该用`...`语法，把这个对象的所有属性先拷贝过来，再设你要改变的属性。
-
-```
-const onClick = ()=>{
-setUser({
-...user,
-age:20
-})
-}
- 
-```
 
 ##### 2. 不能在原地址上修改
 
@@ -701,7 +666,6 @@ const onClick = ()=>{
 user.age=30
 setUser(user)
 }
- 
 ```
 
 比如说，我想修改user.age，先把user.age赋一个新值，在set这个user。会发现，点击按钮，UI并没有更新。
@@ -716,7 +680,6 @@ setUser(user)
 const [state, setState] = useState(()=>{
 return initialState
 })
- 
 ```
 
 返回一个初始值，效果和直接把初始值传进去一样。接受函数的好处是如果这个初始值的计算比较复杂，函数形式只会执行一次，也就只会在第一次计算。如果是直接传初始值，每次进来都要计算一次。（但是我们一般直接传初始值）
@@ -739,7 +702,6 @@ return (
 </div>
 );
 }
- 
 ```
 
 可是点击按钮，发现n变成了2。
@@ -753,7 +715,6 @@ const onClick = ()=>{
 setN(i=>i+1)
 setN(i=>i+2)
 }
- 
 ```
 
 setN里没有n这个变量。只有一个函数，这个函数代表了一个操作，+1操作，+2操作。并没说把n加1。只是用了占位符`i`表示了一种操作。
@@ -794,15 +755,11 @@ function Counter() {
 
 我们看到在用法上，useReducer和useState的返回值是一致的，区别是useReducer
 
-第一个参数是一个function，是用于计算新的state所执行的方法，对标useState的basicStateReducer。我们看到reducer的实现和redux很相似，原因是Redux的作者Dan加入React核心团队，其一大贡献就是“将Redux的理念带入React”。
+第一个参数是一个function，是用于计算新的state所执行的方法，对标useState的basicStateReducer。
 第二个参数是初始值
 第三个参数是计算初始值的方法，其执行时候的参数是第二个参数
 
-##### **使用场景**
-
-所有用useState实现的场景都可以用useReducer来实现，像如下复杂的场景更适合用useReducer，比如state逻辑较复杂且包含多个子值，或者下一个 state 依赖于之前的 state 等。
-
-#### ** **useEffect vs useLayoutEffect**
+#### **useEffect vs useLayoutEffect**
 
 上面讲了存储状态相关的两个hook，接下来讲解下类比class组件生命周期的两个hook，useEffect和useLayoutEffect相当于class组件的以下生命周期:componentDidMount、componentDidUpdate、componentWillUnMount，二者使用方式完全一样，不同的点是调用的时机不同，以useEffect为示例来说明一下：
 
@@ -854,7 +811,7 @@ tag：hook的标志位，commit阶段会根据这个标志来决定是不是要�
 
 next: 指向下一个effect
 
-在commit阶段就是根据fiber.flags和hook.tag来半段是否执行create或者destory。
+在commit阶段就是根据fiber.flags和hook.tag来判断是否执行create或者destory。
 
 ##### **原理解析**
 
@@ -910,8 +867,7 @@ l function组件调用useLayoutEffect的回调函数
 
 <img src="https://pic4.zhimg.com/80/v2-1e3ba98d0c3979ab9895dc5f65f3246f_1440w.jpg" alt="img" style="zoom:25%;" />
 
-
-如上右图，我们的调度可以简单的理解为是类似setTimeout的宏任务，当然其内部实现要比这个复杂多了。当commit阶段整个执行完毕之后，浏览器会启动 GUI渲染引擎 进行一次绘制，绘制完毕之后，浏览器会取出一个宏任务来执行（react会保证我们异步调度的useEffect的函数会在下一次更新之前执行完毕）。
+当commit阶段整个执行完毕之后，浏览器会启动 GUI渲染引擎 进行一次绘制，绘制完毕之后，浏览器会取出一个宏任务来执行（react会保证我们异步调度的useEffect的函数会在下一次更新之前执行完毕）。
 因此，在这个mutaiton阶段，我们已经把发生的变化映射到真实 DOM 上了，但由于 JS 线程和浏览器渲染线程是互斥的，因为 JS 虚拟机还在运行，即使内存中的真实 DOM 已经变化，浏览器也没有立刻绘制到屏幕上。
 
 commit 阶段是不可打断的，会一次性把所有需要 commit 的节点全部 commit 完，至此 react 更新完毕，JS 停止执行
@@ -924,7 +880,7 @@ commit 阶段是不可打断的，会一次性把所有需要 commit 的节点�
 
 （1）render阶段
 
-mountEffect实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1698)，updateEffect实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1723)，mountLayoutEffect实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1744)，updateLayoutEffect实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1762)，useEffectLayout vs useEffect 标志位情况如下：
+useEffectLayout vs useEffect 标志位情况如下：
 
 |                 | 时机             | fiber.flags                            | hook.memoizedState                                  |
 | --------------- | ---------------- | -------------------------------------- | --------------------------------------------------- |
@@ -975,19 +931,19 @@ a、根据effectTag分别处理，对dom进行插入、删除、更新等操作
 
 b、effectTag为Deletion，class组件调用componentWillUnmount，function组件异步调度useEffect的销毁函数，以下为异步调度的方法同**A.a**。
 
-c、effectTag为Update时，function函数组件执行useLayoutEffect的销毁函数，实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1826)。
+c、effectTag为Update时，function函数组件执行useLayoutEffect的销毁函数。
 
 **C、layout阶段**
 
 a、class组件调用componentDidMount 或componentDidUpdate
 
-b、function组件调用useLayoutEffect的回调函数，实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L1831)。
+b、function组件调用useLayoutEffect的回调函数。
 
 **那么useEffect是怎样异步执行的呢？我们来看一下**
 
-（1）、在beforeMutation和mutation阶段异步调度flushPassiveEffects。
+（1）在beforeMutation和mutation阶段异步调度flushPassiveEffects。
 
-（2）、flushPassiveEffects实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L2154)。遍历root.current，依次执行。
+（2）flushPassiveEffects实现在[这里](https://zhuanlan.zhihu.com/p/443264124/edit#L2154)。遍历root.current，依次执行。
 
 ##### **使用场景**
 
