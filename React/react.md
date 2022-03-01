@@ -1152,61 +1152,6 @@ React 的 `Context API` 是一种在应用程序中深入传递数据的方法�
 
 在 `Hooks` 环境中，依旧可以使用 `Consumer`，但是 `ContextType` 作为类静态成员肯定是用不了。Hooks 提供了 `useContext`,不但解决了 `Consumer` 难用的问题同时也解决了　`contextType` 只能使用一个 `context` 的问题。
 
-###### 标准方式
-
-使用 API的典型方法如下所示：
-
-```text
-import React from "react";
-import ReactDOM from "react-dom";
-
-// 创建 Context
-const NumberContext = React.createContext();
-// 它返回一个具有两个值的对象
-// { Provider, Consumer }
-
-function App() {
-  // 使用 Provider 为所有子孙代提供 value 值 
-  return (
-    <NumberContext.Provider value={42}>
-      <div>
-        <Display />
-      </div>
-    </NumberContext.Provider>
-  );
-}
-
-function Display() {
-  // 使用 Consumer 从上下文中获取 value
-  return (
-    <NumberContext.Consumer>
-      {value => <div>The answer is {value}.</div>}
-    </NumberContext.Consumer>
-  );
-}
-
-ReactDOM.render(<App />, document.querySelector("#root"));
-```
-
-可以 [CodeSandbox](https://link.zhihu.com/?target=https%3A//codesandbox.io/s/jnyov0xpm3)上看看运行效果。
-
-###### 使用 useContext 方式
-
-使用 `useContext` hook 来重写上面的示例
-
-```text
-import React, { useContext } from 'react';
-
-// ...
-
-function Display() {
-  const value = useContext(NumberContext);
-  return <div>The answer is {value}.</div>;
-}
-```
-
-调用`useContext`，传入从`React.createContext`获取的上下文对象。
-
 **唯一需要注意**的是你必须将整个上下文对象传递给`useContext` - 而不仅仅是`Consumer`， 当然如果忘记了，`React`会给出警告。
 
 ###### 嵌套的 Consumers
@@ -1597,8 +1542,6 @@ function Counter() {
 
 考虑到这是一个相对常见的使用场景，很可能在未来 React 会自带一个 `usePrevious` Hook。
 
-参见 [derived state 推荐模式](https://zh-hans.reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops).
-
 #### 为什么我会在我的函数中看到陈旧的 props 和 state ？
 
 组件内部的任何函数，包括事件处理函数和 effect，都是从它被创建的那次渲染中被「看到」的。例如，考虑这样的代码：
@@ -1825,7 +1768,7 @@ function ProductPage({ productId }) {
 >
 > 看看 [这个小 demo](https://codesandbox.io/s/jvvkoo8pq3) 和 [这篇文章](https://www.robinwieruch.de/react-hooks-fetch-data/) 来了解更多关于如何用 Hook 进行数据获取。
 
-**如果出于某些原因你 \*无法\* 把一个函数移动到 effect 内部，还有一些其他办法：**
+**如果出于某些原因你无法把一个函数移动到 effect 内部，还有一些其他办法：**
 
 - **你可以尝试把那个函数移动到你的组件之外**。那样一来，这个函数就肯定不会依赖任何 props 或 state，并且也不用出现在依赖列表中了。
 - 如果你所调用的方法是一个纯计算，并且可以在渲染时调用，你可以 **转而在 effect 之外调用它，** 并让 effect 依赖于它的返回值。
@@ -1833,7 +1776,9 @@ function ProductPage({ productId }) {
 
 ```
 function ProductPage({ productId }) {
-  // ✅ 用 useCallback 包裹以避免随渲染发生改变  const fetchProduct = useCallback(() => {    // ... Does something with productId ...  }, [productId]); // ✅ useCallback 的所有依赖都被指定了
+  // ✅ 用 useCallback 包裹以避免随渲染发生改变  
+  const fetchProduct = useCallback(() => {    // ... Does something with productId ...  }, [productId]); 
+  // ✅ useCallback 的所有依赖都被指定了
   return <ProductDetails fetchProduct={fetchProduct} />;
 }
 
@@ -1891,7 +1836,9 @@ function Counter() {
 
 ```
 function Example(props) {
-  // 把最新的 props 保存在一个 ref 中  const latestProps = useRef(props);  useEffect(() => {    latestProps.current = props;  });
+  // 把最新的 props 保存在一个 ref 中  
+  const latestProps = useRef(props);  
+  useEffect(() => {    latestProps.current = props;  });
   useEffect(() => {
     function tick() {
       // 在任何时候读取最新的 props      console.log(latestProps.current);    }
@@ -4998,7 +4945,7 @@ React合成事件一套机制：React并不是将click事件直接绑定在dom�
 
 ![img](https:////upload-images.jianshu.io/upload_images/13128722-8597813ecf5583ab.png?imageMogr2/auto-orient/strip|imageView2/2/w/700/format/webp)
 
-image.png
+
 
 ##### isBatchingUpdates
 
