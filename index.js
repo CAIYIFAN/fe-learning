@@ -101,3 +101,82 @@ function* flat(arr, num) {
 [...flat(arr, Infinity)]
 
 // forEach跳过数组空位
+
+function createStore(reducer) {
+    let state;
+    let listeners = [];
+
+    function getState() {
+        return state;
+    }
+
+    function subscribe(listener) {
+        listeners.push(listener);
+    }
+
+    function unSubscribe(listener) {
+        splice(listeners.indexOf(listener), 1);
+    }
+
+    function dispatch(action) {
+        state = reducer(state, action)
+        for (let i = 0; i < listeners.length; i++) {
+            listeners[i]()
+        }
+    }
+
+    const store = {
+        getState,
+        subscribe,
+        unSubscribe,
+        dispatch,
+    }
+    
+    return  store;
+}
+
+class Scheduler {
+    constructor () {
+        this.tasks = [];
+        this.usingTask = [];
+    }
+
+    add(promiseCreator) {
+        return new Promise((resolve, reject) => {
+            promiseCreator.resolve = resolve
+            if (this.usingTask.length < 2) {
+                this.usingRun(promiseCreator)
+            } else {
+                this.tasks.push(promiseCreator)
+            }
+        })
+    }
+
+    usingRun(promiseCreator) {
+        this.usingTask.push(promiseCreator)
+        promiseCreator().then(() => {
+            promiseCreator.resolve();
+            this.usingMove(promiseCreator)
+            if (this.tasks.length > 0) {
+                this.usingRun(this.tasks.shift())
+            }
+        })
+    }
+
+    usingMove(promiseCreator) {
+        let index = this.usingTask.findIndex(promiseCreator);
+        this.usingTask.splice(index, 1)
+    }
+}
+
+const timeout = (time) => new Promise(resolve => {
+    setTimeout(resolve, time)
+})
+
+const scheduler = new Scheduler()
+
+const addTask = (time, order) => {
+    scheduler.add(() => timeout(time)).then(() => console.log(order))
+}
+
+addTask(400, 4)
