@@ -129,3 +129,154 @@ var reverseList = function(head) {
     }
     return prev;
 }
+
+function add() {
+    var _args = Array.prototype.slice.call(arguments);
+    var _adder = function() {
+        args.push(...args);
+        return _adder;
+    }
+    _adder.toString = function() {
+        return _args.reduce((a, b) => (
+            a+b
+        ));
+    }
+    return _adder
+}
+
+
+function add() {
+    var _args = Array.prototype.slice.call(arguments);
+    var _adder = function() {
+        _args.push(...arguments);
+        return _adder;
+    }
+
+    _adder.toString = function() {
+        return _args.reduce((a, b) => (
+            a+b
+        ))
+    }
+
+    return _adder;
+}
+
+class _LazyMan {
+    constructor(name) {
+        this.taskQueue = [];
+        this.runTimer = null;
+        this.sayHi(name);
+    }
+
+    run() {
+        if (this.runTimer) {
+            clearTimeout(this.runTimer);
+        }
+        this.runTimer = setTimeout(async () => {
+            for (let asyncFun of this.taskQueue) {
+                await asyncFun()
+            }
+            this.taskQueue.length = 0;
+            this.runTimer = null;
+        })
+        return this
+    }
+
+    sayHi(name) {
+        this.taskQueue.push(async () => console.log(`Hi, this is ${name}`))
+        return this.run;
+    }
+
+    eat (food) {
+        this.taskQueue.push(async () => console.log(`Eat ${food}`));
+        return this.run();
+      }
+
+      sleep (second) {
+        this.taskQueue.push(async () => {
+          console.log(`Sleep ${second} s`)
+          return this._timeout(second)
+        });
+        return this.run();
+      }
+      sleepFirst (second) {
+        this.taskQueue.unshift(async () => {
+          console.log(`Sleep first ${second} s`)
+          return this._timeout(second);
+        });
+        return this.run();
+      }
+
+    async _timeout(second) {
+        await new Promise(resolve => {
+            setTimeout(resolve, second * 1e3);
+        })
+    }
+}
+
+
+class Scheduler {
+    constructor() {
+        this.tasks =[];
+        this.usingTask = []
+    }
+
+    add(promiseCreator) {
+        return new Promise((resolve, reject) => {
+            promiseCreator.resolve = resolve
+            if (this.usingTask.length < 2) {
+                this.usingRun(promiseCreator);
+            } else {
+                this.tasks.push(promiseCreator);
+            }
+        })
+    }
+
+    usingRun(promiseCreator) {
+        this.usingTask.push(promiseCreator)
+        promiseCreator().then(() => {
+            promiseCreator.resolve();
+            this.usingMove(promiseCreator);
+            if (this.tasks.length > 0) {
+                this.usingRun(this.tasks.shift);
+            }
+        })
+    }
+
+    usingMove(promiseCreator) {
+        let index = this.usingTask.findIndex(promiseCreator);
+        this.usingTask.splice(index, 1);
+    }
+}
+
+function deepCopy(obj1) {
+    const obj2 = Array.isArray(obj1) ? [] :{};
+    if (obj1 && typeof obj1 === 'object') {
+        for (let i in obj1) {
+            if (obj1.hasOwnProperty(obj1[i])) {
+                if (typeof obj1[i] === 'object') {
+                    obj2[i] = deepCopy(obj1[i])
+                } else {
+                    obj2[i] = obj1[i]
+                }       
+            }
+        }
+    }
+    return obj2;
+}
+
+const flat = (arr) => {
+    return arr.reduce((a, b) => {
+        return a.concat(Array.isArray(b) ? flat(b): b)
+    },[])
+}
+
+new Set(...[1,2,3,4,4])
+
+for (let i = 0; i<arr.length -1; i++) {
+    for (let j = 0; j < arr.length - 1 -i; j++) {
+        if (arr[j] > arr[j+1]) {
+            
+        }
+    }
+}
