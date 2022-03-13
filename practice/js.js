@@ -4,12 +4,6 @@ function create(obj) {
     return new F();
 }
 
-function create(obj) {
-    function F();
-    F.prototype = obj;
-    return new F();
-}
-
 function myInstanceof(left, right) {
     let proto = Object.getPrototypeOf(left),
         prototype = right.prototype;
@@ -23,26 +17,11 @@ function myInstanceof(left, right) {
     }
 }
 
-function myInstanceof(left, right) {
-    let proto = Object.getPrototypeOf(left);
-    let prototype = right.prototype;
-
-    while(true) {
-        if (!proto) return false;
-        if (proto === prototype) return true;
-        proto = Object.getPrototypeOf(proto);
-    }
-}
 
 function objectFactory() {
     let newObject = null;
     let constructor = Array.prototype.shift.call(arguments);
     let result = null;
-
-    if (typeof constructor !== 'function') {
-        console.error('type error');
-        return;
-    }
 
     newObject = Object.create(constructor.prototype);
     result = constructor.apply(newObject, arguments);
@@ -387,3 +366,77 @@ class Scheduler {
         this.usingTask.splice(index, 1);
     }
 }
+
+function objectFactory() {
+    let newObj = null;
+    let constructor = Array.prototype.shift.call(arguments);
+}
+
+// 全排列
+const permute = (nums) => {
+    const res = [];
+    const used = {};
+
+    function dfs(path) {
+        if (path.length == nums.length) { // 个数选够了
+            res.push(path.slice()); // 拷贝一份path，加入解集res
+            return;                 // 结束当前递归分支
+        }
+        for (const num of nums) { // for枚举出每个可选的选项
+            // if (path.includes(num)) continue; // 别这么写！查找是O(n)，增加时间复杂度
+            if (used[num]) continue; // 使用过的，跳过
+            path.push(num);         // 选择当前的数，加入path
+            used[num] = true;       // 记录一下 使用了
+            dfs(path);              // 基于选了当前的数，递归
+            path.pop();             // 上一句的递归结束，回溯，将最后选的数pop出来
+            used[num] = false;      // 撤销这个记录
+        }
+    }
+
+    dfs([]); // 递归的入口，空path传进去
+    return res;
+};
+
+
+var levelOrder = function(root) {
+    const ret = [];
+    if (!root) {
+        return ret;
+    }
+
+    const q = [];
+    q.push(root);
+    while (q.length !== 0) {
+        const currentLevelSize = q.length;
+        ret.push([]);
+        for (let i = 1; i <= currentLevelSize; ++i) {
+            const node = q.shift();
+            ret[ret.length - 1].push(node.val);
+            if (node.left) q.push(node.left);
+            if (node.right) q.push(node.right);
+        }
+    }
+        
+    return ret;
+};
+
+
+const lowestCommonAncestor = (root, p, q) => {
+    if (root == null) { // 遇到null，返回null 没有LCA
+        return null;
+    }
+    if (root == q || root == p) { // 遇到p或q，直接返回当前节点
+        return root;
+    }
+    // 非null 非q 非p，则递归左右子树
+    const left = lowestCommonAncestor(root.left, p, q);
+    const right = lowestCommonAncestor(root.right, p, q);
+    // 根据递归的结果，决定谁是LCA
+    if (left && right) {
+        return root;
+    }
+    if (left == null) {
+        return right;
+    }
+    return left;
+};
