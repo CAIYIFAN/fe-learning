@@ -1000,6 +1000,16 @@ var search = function(nums, target) {
     }
     return -1;
 };
+const hasPathSum = (root, sum) => {
+  if (root == null) { // 遍历到null节点
+    return false;
+  }                
+  if (root.left == null && root.right == null) { // 遍历到叶子节点
+    return sum - root.val == 0;                  // 如果满足这个就返回true。否则返回false
+  }
+  // 不是上面的情况，则拆成两个子树的问题，其中一个true了就行
+  return hasPathSum(root.left, sum - root.val) || hasPathSum(root.right, sum - root.val); 
+}
 
 // 归并
 
@@ -1069,3 +1079,80 @@ function deepCopy(obj1) {
   alert(obj2.a); // 3
   alert(obj1.c.d); // 3
   alert(obj2.c.d); // 4
+
+  var generateParenthesis = function (n) {
+    let set = new Set(['()']);
+    for (let c = 2; c <= n; c++) {
+        let nextSet = new Set();
+        for (const s of set) {
+            for (let j = 0; j <= s.length; j++) {
+                nextSet.add(s.slice(0, j) + '()' + s.slice(j));
+            }
+        }
+        set = nextSet;
+    }
+    return [...set];
+};
+
+function longestPalindrome(s) {
+  let res = '';
+  for (let i = 0; i < s.length; i++) {
+      // 寻找长度为奇数的回文子串(以当前元素向两边扩散)
+      const s1 = palindrome(s, i, i);
+      // 寻找长度为偶数的回文子串(以s[i],s[i + 1])向两边扩散
+      const s2 = palindrome(s, i, i + 1);
+      res = res.length > s1.length ? res : s1;
+      res = res.length > s2.length ? res : s2;
+  }
+  return res;
+};
+
+function palindrome(s, l, r) {
+  // 左右指针，从s[l]和s[r]向两边扩散，找到最长回文串
+  while (l >= 0 && r < s.length && s[l] == s[r]) {
+      l--; r++;
+  }
+  return s.substr(l + 1, r - l - 1);
+}
+
+
+var canJump = function(nums) {
+  // 必须到达end下标的数字
+  let end = nums.length - 1;
+
+  for (let i = nums.length - 2; i >= 0; i--) {
+      if (end - i <= nums[i]) {
+          end = i;
+      }
+  }
+
+  return end == 0;
+};
+
+var rob = function(nums) {
+  const len = nums.length;
+  if(len == 0)
+      return 0;
+  const dp = new Array(len + 1);
+  dp[0] = 0;
+  dp[1] = nums[0];
+  for(let i = 2; i <= len; i++) {
+      dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i-1]);
+  }
+  return dp[len];
+};
+
+var lowestCommonAncestor = function(root, p, q) {
+  let ans;
+  const dfs = (root, p, q) => {
+      if (root === null) return false;
+      const lson = dfs(root.left, p, q);
+      const rson = dfs(root.right, p, q);
+      if ((lson && rson) || ((root.val === p.val || root.val === q.val) && (lson || rson))) {
+          ans = root;
+      } 
+      return lson || rson || (root.val === p.val || root.val === q.val);
+  }
+  dfs(root, p, q);
+  return ans;
+};
