@@ -36,12 +36,6 @@ const flat = arr => {
     },[]);
 };
 
-const flat = arr => {
-  return arr.reduce((prev, cur) => {
-    return prev.concat(Array.isArray(cur) ? flat(cur) : cur);
-  })
-}
-
 
 function flat() {
     const result = [];
@@ -180,7 +174,7 @@ function repeat (func, times, wait) {
   const repeatFunc = repeat(console.log, 4, 3000);
   repeatFunc("hello world");//会输出4次 hello world, 每次间隔3秒
 
-
+// 柯里化
   var add = function(){
     let sum = 0;
     for(let i=0,len=arguments.length;i<len;i++){
@@ -406,7 +400,6 @@ function all(arr){
     }
   })
 }
-
 // Promise.race
 function race(arr){
   return new Promise((res,rej) => {
@@ -530,6 +523,8 @@ var search = function(nums, target) {
   }
   return -1;
 };
+
+
 const hasPathSum = (root, sum) => {
 if (root == null) { // 遍历到null节点
   return false;
@@ -540,7 +535,6 @@ if (root.left == null && root.right == null) { // 遍历到叶子节点
 // 不是上面的情况，则拆成两个子树的问题，其中一个true了就行
 return hasPathSum(root.left, sum - root.val) || hasPathSum(root.right, sum - root.val); 
 }
-
 // 归并
 
 function mergeSort (arr) {
@@ -734,3 +728,438 @@ function resolvePromise(promise2, x, resolve, reject) {
         resolve(x)
     }
 }
+
+function create(proto, propertiesObject = undefined){ // proto 新创建对象的原型对象, propertiesObject 要定义其可枚举属性或修改的属性描述符的对象
+  if(typeof proto !== 'object' && proto !== null && typeof proto !== 'function') // 只能是 null 或者 object
+    throw Error('Uncaught TypeError: Object prototype may only be an Object or null');
+    
+  function F(){} // 创建一个空的构造函数 F
+  F.prototype = proto; // F 原型指向 proto
+  let obj = new F(); // 创建 F 的实例
+
+  if(propertiesObject !== undefined) // propertiesObject有值则调用 Object.defineProperties
+   Object.defineProperties(obj, propertiesObject); 
+  
+  return obj; // 返回 这个 obj
+}
+
+class EventBus {
+  constructor(){}
+  handlerBus={}
+  //注册
+  $on(eventName,handler){
+      if(!this.handlerBus.hasOwnProperty(eventName)){
+          this.handlerBus[eventName] = []
+      }
+      this.handlerBus[eventName].push(handler)
+  }
+  //触发
+  $emit(eventName,handlerParams){
+      if(!this.handlerBus.hasOwnProperty(eventName)){
+          return new Error('未注册该事件')
+      }
+      const eventHandlers = this.handlerBus[eventName]
+      for(let i = 0;i<eventHandlers.length;i++){
+          eventHandlers[i](handlerParams)
+      }
+  }
+  //触发一次
+  $onece(eventName,handlerParams){
+      this.$emit(eventName,handlerParams)
+      this.$remove(eventName)
+  }
+  //移除
+  $remove(eventName,handler){
+      if(!this.handlerBus.hasOwnProperty(eventName)){
+          return new Error('未注册该事件')
+      }
+      if(!handler){
+          //如果没指定移除的子handler 则移除整个eventName
+          Reflect.defineProperty(this.handlerBus,eventName)
+          return
+      }
+      //如果指定了handler
+      const eventHandlers = this.handlerBus[eventName]
+      const handlerIndex = eventHandlers.findIndex(event=>event === handler)
+      if(handlerIndex === -1){
+          return new Error('未绑定该事件')
+      }
+      this.handlerBus[eventName].splice(handlerIndex,1)
+      if(this.handlerBus[eventName].length === 0)Reflect.defineProperty(this.handlerBus,eventName)
+  }
+}
+export default EventBus
+
+const EventBusObj = new EventBus()
+const f1=(p)=>{
+    console.log('f1')
+    console.log(p)
+}
+const f2=(p)=>{
+    console.log('f2')
+    console.log(p)
+}
+        //注册
+EventBusObj.$on('event1',f1)
+EventBusObj.$on('event1',f2)
+          
+ 
+       //触发
+EventBusObj.$emit('event1',{a:1})
+       //移除event1的f1方法
+EventBusObj.$remove('event1',f1)   
+
+// 股票的最大利润涵手续费
+var maxProfit = function(prices, fee) {
+  let value = prices[0]
+  let sum = 0;
+  for (let i = 0; i < prices.length; i++) {
+      if (value > prices[i]) {
+          value = prices[i]
+      } else if ((t = prices[i] - value - fee) > 0){
+          console.log(t,i)
+          sum = sum + t;
+          value = prices[i] -fee;
+      }
+  }
+  return sum;
+};
+
+// 中心扩散法求最长回文子串
+/**
+ * @param {string} s
+ * @return {string}
+ */
+ var longestPalindrome = function(s) {
+  let res = ""
+  for (let i = 0; i < s.length; i++) {
+      const s1 = palindrome(s, i, i);
+      const s2 = palindrome(s, i, i+1);
+      res = res.length <= s1.length ? s1 : res;
+      res = res.length <= s2.length ? s2 : res;
+  }
+  return res
+};
+
+function palindrome(s, l, r) {
+  while(l >= 0 && r < s.length && s[l] == s[r]) {
+      l--;
+      r++
+  }
+  return s.slice(l+1,r)
+}
+
+/**
+ * @param {number[][]} grid
+ * @return {number}
+ */
+ var minPathSum = function(grid) {
+  let m = grid.length;
+  let n = grid[0].length;
+      for(let i = 1; i < m; i++){
+          grid[i][0] += grid[i - 1][0]
+      }
+  for(let j = 1; j < n; j++){
+      grid[0][j] += grid[0][j - 1]
+  }
+      
+  for(let i = 1; i < m; i++) {
+      for (let j = 1; j < n; j++) {
+          grid[i][j] += Math.min(grid[i][j - 1], grid[i - 1][j])
+      }
+  }
+  return grid[m-1][n-1]
+};
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+ var sumNumbers = function(root) {
+  return dfs(root, 0);
+};
+
+var dfs = (root, prevSum) => {
+  if (root === null) return 0;
+  const sum = prevSum*10 + root.val
+  if (root.left === null && root.right === null){
+      return sum;
+  } else {
+      return dfs(root.left, sum) + dfs(root.right, sum);
+  }
+}
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+ var maxSubArray = function(nums) {
+  let max = nums[0];
+  let sum = 0;
+  for (let i = 0; i< nums.length; i++) {
+      if (sum >= 0) {
+          sum = sum + nums[i];
+      } else {
+          sum = nums[i]
+      }
+      if (sum > max) {
+          max = sum;
+      }
+  }
+  return max;
+};
+
+// 公共父节点
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val) {
+ *     this.val = val;
+ *     this.left = this.right = null;
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @param {TreeNode} p
+ * @param {TreeNode} q
+ * @return {TreeNode}
+ */
+ var lowestCommonAncestor = function(root, p, q) {
+  return dfs(root, p, q)
+};
+
+function dfs(root, p, q) {
+  if(!root || root === p || root === q) return root;
+  let left = dfs(root.left, p, q);
+  let right = dfs(root.right, p, q);
+  if (!left && !right) {
+      return null
+  } else if(!left && right) {
+      return right
+  } else if(!right && left) {
+      return left
+  }
+  return root;
+}
+
+// 最长公共前缀
+/**
+ * @param {string[]} strs
+ * @return {string}
+ */
+
+ var longestCommonPrefix = function (strs) {
+  if (!strs.length) return ''
+  let res = strs[0]
+  for (ch of strs) {
+      for (let i = 0; i < res.length; i++) {
+          if (ch[i] !== res[i]) {
+              res = res.slice(0, i)
+              break
+          }
+      }
+  }
+  return res
+};
+
+//最长不含重复字符的子字符串
+/**
+ * @param {string} s
+ * @return {number}
+ */
+ var lengthOfLongestSubstring = function(s) {
+  let max = 0;
+  let result = []
+  for (let i = 0; i < s.length; i++) {
+      while(result.includes(s[i])){
+          result.shift()
+      }
+      result.push(s[i]);
+      if (result.length > max) {
+          max = result.length;
+      }
+  }
+  return max;
+};
+
+// 螺旋矩阵
+/**
+ * @param {number[][]} matrix
+ * @return {number[]}
+ */
+ var spiralOrder = function(matrix) {
+  const n = matrix.length;
+  const m = matrix[0].length;
+  const ans= []
+  const circle = Math.min(Math.ceil(n/2), Math.ceil(m/2));
+  function doCircle(cur) {
+      for (let i = cur; i < m -cur; i++) {
+          ans.push(matrix[cur][i])
+      }
+      for (let i = cur + 1; i < n -cur; i++) {
+          ans.push(matrix[i][m-cur-1])
+      }
+      for (let i = m-cur-2; i >= cur && (n-cur- 1 > cur); i--) {
+          ans.push(matrix[n-cur-1][i])
+      }
+      for (let i = n-cur-2 ; i > cur && cur < m - cur - 1; i--) {
+          ans.push(matrix[i][cur])
+      }
+  }
+  for(let i=0; i < circle; i++) {
+      doCircle(i)
+  }
+  return ans;
+};
+
+// 长度最小的子数组
+/**
+ * @param {number} target
+ * @param {number[]} nums
+ * @return {number}
+ */
+ var minSubArrayLen = function(target, nums) {
+  const length = nums.length;
+  let left = 0;
+  let right = 0;
+  let sum = nums[0];
+  let min = Number.MAX_SAFE_INTEGER;
+  while(right < length) {
+      if (sum >= target) {
+          min = Math.min(min, right-left+1)
+          if (min === 1) return min;
+          sum = sum - nums[left];
+          left++;
+      } else{
+          right++;
+          sum = sum + nums[right]
+      }
+  }
+  return min === Number.MAX_SAFE_INTEGER ? 0 : min;
+};
+
+// 接雨水
+const trap = height => {
+  let count = 0;
+  let [left, right] = [0, height.length - 1];
+  let [leftMax, rightMax] = [0, 0];
+  while (left < right) {
+      leftMax = Math.max(leftMax, height[left]);
+      rightMax = Math.max(rightMax, height[right]);
+      if (leftMax < rightMax) {
+          count += leftMax - height[left++];
+      } else {
+          count += rightMax - height[right--];
+      }
+  }
+  return count;
+};
+
+//EXCEL
+/**
+ * @param {number} columnNumber
+ * @return {string}
+ */
+ var convertToTitle = function(n) {
+  if (n <= 0) return "";
+  let res = [];
+  while(n) {
+    let remain = n % 26 ? n % 26 : 26; // 类似 十进制的 521 进行不断取余
+    res.unshift(String.fromCharCode(remain + 64)); // 然后余数 + 64 获得字符（不是+65的原因是题目的A从1开始，要减去1）
+    n = Math.floor((n - remain) / 26); // 然后减去余数再除26，刚好除得尽，新的一位开始
+  }
+  return res.join("");
+};
+
+// 完美数
+var checkPerfectNumber = function(num) {
+  if (num === 1) {
+      return false;
+  }
+
+  let sum = 1;
+  for (let d = 2; d * d <= num; ++d) {
+      if (num % d === 0) {
+          sum += d;
+          if (d * d < num) {
+              sum += Math.floor(num / d);
+          }
+      }
+  }
+  return sum === num;
+};
+
+// 发饼干
+var findContentChildren = function(g, s) {
+  g.sort((a, b) => a - b);
+  s.sort((a, b) => a - b);
+  const numOfChildren = g.length, numOfCookies = s.length;
+  let count = 0;
+  for (let i = 0, j = 0; i < numOfChildren && j < numOfCookies; i++, j++) {
+      while (j < numOfCookies && g[i] > s[j]) {
+          j++;
+      }
+      if (j < numOfCookies) {
+          count++;
+      }
+  }
+  return count;
+};
+
+
+
+// LRU
+/**
+ * @param {number} capacity
+ */
+ var LRUCache = function(capacity) {
+  this.map = new Map();
+  this.capacity = capacity;
+};
+
+/** 
+* @param {number} key
+* @return {number}
+*/
+LRUCache.prototype.get = function(key) {
+  if(this.map.has(key)){
+      let value = this.map.get(key);
+      this.map.delete(key); // 删除后，再 set ，相当于更新到 map 最后一位
+      this.map.set(key, value);
+      return value
+  } else {
+      return -1
+  }
+};
+
+/** 
+* @param {number} key 
+* @param {number} value
+* @return {void}
+*/
+LRUCache.prototype.put = function(key, value) {
+  // 如果已有，那就要更新，即要先删了再进行后面的 set
+  if(this.map.has(key)){
+      this.map.delete(key);
+  }
+  this.map.set(key, value);
+  // put 后判断是否超载
+  if(this.map.size > this.capacity){
+      this.map.delete(this.map.keys().next().value);
+  }
+
+};
+
+/**
+* Your LRUCache object will be instantiated and called as such:
+* var obj = new LRUCache(capacity)
+* var param_1 = obj.get(key)
+* obj.put(key,value)
+*/
