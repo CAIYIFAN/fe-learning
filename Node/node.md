@@ -79,7 +79,10 @@ EventEmitter是node中一个实现观察者模式的类，主要功能是监听�
 
 ##### EventEmitter有哪些典型应用?
 
-1) 模块间传递消息 2) 回调函数内外传递消息 3) 处理流数据，因为流是在EventEmitter基础上实现的. 4) 观察者模式发射触发机制相关应用
+1) 模块间传递消息 
+1) 回调函数内外传递消息
+1) 处理流数据，因为流是在EventEmitter基础上实现的. 
+1) 观察者模式发射触发机制相关应用
 
 ##### 怎么捕获EventEmitter的错误事件?
 
@@ -92,7 +95,8 @@ EventEmitter是node中一个实现观察者模式的类，主要功能是监听�
 	var myDomain = domain.create();
 	myDomain.on('error', function(err){
 		console.log('domain接收到的错误事件:', err);
-	}); // 接收事件并打印
+	}); 
+	// 接收事件并打印
 	myDomain.run(function(){
 		var emitter1 = new MyEmitter();
 		emitter1.emit('error', '错误事件来自emitter1');
@@ -143,7 +147,12 @@ Readable为可被读流，在作为输入数据源时使用；Writable为可被�
 
 ##### 实现一个Writable Stream?
 
-三步走:1)构造函数call Writable 2)　继承Writable 3) 实现_write(chunk, encoding, callback)函数
+三步走:
+
+1. 构造函数call Writable 
+
+2)　继承Writable 
+3)　实现_write(chunk, encoding, callback)函数
 
 代码演示
 
@@ -268,13 +277,19 @@ node是单线程的，异步是通过一次次的循环事件队列来实现的�
 
 ##### 有哪些方法可以进行异步流程的控制?
 
-1) 多层嵌套回调 2)　为每一个回调写单独的函数，函数里边再回调 3) 用第三方框架比方async, q, promise等
+1) 多层嵌套回调 
+1) 为每一个回调写单独的函数，函数里边再回调
+1) 用第三方框架比方async, q, promise等
 
 #### 部署
 
 ##### 怎样绑定node程序到80端口?
 
-多种方式 1) sudo 2) apache/nginx代理 3) 用操作系统的firewall iptables进行端口重定向
+多种方式 
+
+1) sudo 
+1) apache/nginx代理
+1) 用操作系统的firewall iptables进行端口重定向
 
 #### 性能调优
 

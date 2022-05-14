@@ -1,9 +1,3 @@
----
-title: createjs基础
-date: 2021-02-16 00:22:38
-tags: 动画
----
-
 ### EaselJS创建图形
 
 ```javascript

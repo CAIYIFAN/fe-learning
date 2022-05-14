@@ -1,4 +1,4 @@
-## 你 不知道的Javascript（上）
+## 你不知道的Javascript（上）
 
 ### 作用域是什么？
 

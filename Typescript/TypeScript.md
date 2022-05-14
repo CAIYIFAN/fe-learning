@@ -1,6 +1,4 @@
 # TypeScript
-## 选择TypeScript的理由
-
 1.类型有利于代码的重构，它有利于编译器在编译时而不是运行时捕获错误。
 
 2.类型是出色的文档形式之一，函数签名是一个定理，而函数体是具体的实现。
@@ -223,135 +221,18 @@ function loggingIdentity<T extends Lengthwise>(arg: T): T {
 ```
 定义一个接口来描述约束条件。 创建一个包含 .length属性的接口，使用这个接口和extends关键字来实现约束。
 
-## Partial (可选属性，但仍然不允许添加接口中没有的属性)
 
-ts中就是让一个定义中的所有属性都变成可选参数，参数可以变多也可以少。
+## 基础类型
 
-我们定义 一个user 接口，如下
+### 布尔值
 
-```
-interface IUser {
-  name: string
-  age: number
-  department: string
-}
- 
-//经过 Partial 类型转化后得到
- 
-type optional = Partial<IUser>
- 
-// optional的结果如下
- 
-type optional = {
-    name?: string | undefined;
-    age?: number | undefined;
-    department?: string | undefined;
-}
-```
-当我们不能明确地确定对象中包含哪些属性时，我们就可以通过Partial来声明。
-## Required（必选属性）
-和Partial刚好相反，将一个定义中的属性全部变成必选参数
-
-让一个类型的属性全部必填
-
-## Pick（部分选择）
-可能需要从一个已声明的类型中抽取出一个子类型，在子类型中包含父类型中的部分或全部属性，这时我们可以使用Pick来实现，
-
-ts中可以选择一个原来的接口中一部分的属性定义
-```
-interface User {
-    id: number;
-    name: string;
-    age: number;
-    gender: number;
-    email: string;
-}
- 
-type PickUser = Pick<User, "id" | "name" | "gender">;
- 
-// 等价于
-type PickUser = {
-    id: number;
-    name: string;
-    gender: number;
-};
- 
-let user: PickUser = {
-    id: 1,
-    name: 'tom',
-    gender: 1
-};
-
-// 等价于
-type PickUser = {
-    id: number;
-    name: string;
-    gender: number;
-};
- 
-let user: PickUser = {
-    id: 1,
-    name: 'tom',
-    gender: 1
-};
-```
-## Omit（属性忽略） 
-与Pick相反，Pick用于拣选出我们需要关心的属性，而Omit用于忽略掉我们不需要关心的属性
-
-```
-interface User {
-    id: number;
-    name: string;
-    age: number;
-    gender: number;
-    email: string;
-}
- 
-// 表示忽略掉User接口中的age和email属性
-type OmitUser = Omit<User, "age" | "email">;
-// 等价于
-type OmitUser = {
-  id: number;
-  name: string;
-  gender: number;
-};
- 
-let user: OmitUser = {
-    id: 1,
-    name: 'tom',
-    gender: 1
-};
-```
-
-## Readonly （只读属性）
-如果要求对象中的一些字段只能在创建的时候被赋值，使用 readonly 定义只读属性(只读的约束存在于第一次给对象赋值的时候，而不是第一次给只读属性赋值的时候)
-```
-interface Person {
-    readonly id: number;
-    name: string;
-    age?: number;
-    [propName: string]: any;
-}
-let tom: Person = {
-    id: 89757,
-    name: 'Tom',
-    gender: 'male'
-};
-tom.id = 9527;      //  Cannot assign to 'id' because it is a constant or a read-only property
-```
-
-
-# 基础类型
-
-## 布尔值
-
-## 数字
+### 数字
 
 和JavaScript一样，TypeScript里的所有数字都是浮点数。 这些浮点数的类型是 `number`。 除了支持十进制和十六进制字面量，TypeScript还支持ECMAScript 2015中引入的二进制和八进制字面量。
 
-## 字符串
+### 字符串
 
-## 数组
+### 数组
 
 TypeScript像JavaScript一样可以操作数组元素。 有两种方式可以定义数组。 第一种，可以在元素类型后面接上 `[]`，表示由此类型元素组成的一个数组：
 
@@ -365,7 +246,7 @@ let list: number[] = [1, 2, 3];
 let list: Array<number> = [1, 2, 3];
 ```
 
-## 元组 Tuple
+### 元组 Tuple
 
 元组类型允许表示一个已知元素数量和类型的数组，各元素的类型不必相同。 比如，你可以定义一对值分别为 `string`和`number`类型的元组。
 
@@ -388,7 +269,7 @@ console.log(x[5].toString()); // OK, 'string' 和 'number' 都有 toString
 x[6] = true; // Error, 布尔不是(string | number)类型
 ```
 
-# 枚举
+### 枚举
 
 `enum`类型是对JavaScript标准数据类型的一个补充。 像C#等其它语言一样，使用枚举类型可以为一组数值赋予友好的名字。
 
@@ -408,23 +289,23 @@ let colorName: string = Color[2];
 console.log(colorName);  // 显示'Green'因为上面代码里它的值是2
 ```
 
-## Any
+### Any
 
-## Void
+### Void
 
 某种程度上来说，`void`类型像是与`any`类型相反，它表示没有任何类型。 当一个函数没有返回值时，你通常会见到其返回值类型是 `void`
 
-## Null 和 Undefined
+### Null 和 Undefined
 
 TypeScript里，`undefined`和`null`两者各自有自己的类型分别叫做`undefined`和`null`。 
 
 默认情况下`null`和`undefined`是所有类型的子类型。 就是说你可以把 `null`和`undefined`赋值给`number`类型的变量。
 
-## `unknown`
+### `unknown`
 
 `unknown`类型代表*任何*值。这类似于`any`类型，但更安全，因为用值做任何事情是不合法的`unknown`
 
-## 函数重载
+### 函数重载
 
 ```ts
 function makeDate(timestamp: number): Date;
@@ -441,13 +322,13 @@ const d2 = makeDate(5, 5, 5);
 const d3 = makeDate(1, 3);
 ```
 
-## Never
+### Never
 
 `never`类型表示的是那些永不存在的值的类型。 例如， `never`类型是那些总是会抛出异常或根本就不会有返回值的函数表达式或箭头函数表达式的返回值类型； 变量也可能是 `never`类型，当它们被永不为真的类型保护所约束时。
 
 `never`类型是任何类型的子类型，也可以赋值给任何类型；然而，*没有*类型是`never`的子类型或可以赋值给`never`类型（除了`never`本身之外）。 即使 `any`也不可以赋值给`never`。
 
-## Object
+### Object
 
 `object`表示非原始类型，也就是除`number`，`string`，`boolean`，`symbol`，`null`或`undefined`之外的类型。
 
@@ -514,11 +395,11 @@ let digital = createClock(DigitalClock, 12, 17);
 let analog = createClock(AnalogClock, 7, 32);
 ```
 
-# 接口
+## 接口
 
-## 可选属性
+### 可选属性
 
-## 只读属性
+### 只读属性
 
 在属性名前用 `readonly`来指定只读属性
 
@@ -539,11 +420,11 @@ a = ro; // error!
 a = ro as number[];
 ```
 
-## `readonly` vs `const`
+### `readonly` vs `const`
 
 最简单判断该用`readonly`还是`const`的方法是看要把它做为变量使用还是做为一个属性。 做为变量使用的话用 `const`，若做为属性则使用`readonly`。
 
-## 额外属性
+### 额外属性
 
 ```typescript
 interface SquareConfig {
@@ -553,7 +434,7 @@ interface SquareConfig {
 }
 ```
 
-## 可索引的类型
+### 可索引的类型
 
 ```typescript
 interface StringArray {
@@ -568,7 +449,7 @@ let myStr: string = myArray[0];
 
 TypeScript支持两种索引签名：字符串和数字。 可以同时使用两种类型的索引，但是数字索引的返回值必须是字符串索引返回值类型的子类型。 这是因为当使用 `number`来索引时，JavaScript会将它转换成`string`然后再去索引对象。 也就是说用 `100`（一个`number`）去索引等同于使用`"100"`（一个`string`）去索引，因此两者需要保持一致。
 
-## 类类型
+### 类类型
 
 ```typescript
 interface ClockInterface {
@@ -585,17 +466,17 @@ class Clock implements ClockInterface {
 }
 ```
 
-# 类
+## 类
 
-## 继承
+### 继承
 
 在TypeScript里，我们可以使用常用的面向对象模式。 基于类的程序设计中一种最基本的模式是允许使用继承来扩展现有的类。
 
-## 公共，私有与受保护的修饰符
+### 公共，私有与受保护的修饰符
 
-## 默认为 `public`
+### 默认为 `public`
 
-## 理解 `private`
+### 理解 `private`
 
 当成员被标记成 `private`时，它就不能在声明它的类的外部访问。
 
@@ -610,7 +491,7 @@ new Animal("Cat").name; // 错误: 'name' 是私有的.
 
 然而，当我们比较带有 `private`或 `protected`成员的类型的时候，情况就不同了。 如果其中一个类型里包含一个 `private`成员，那么只有当另外一个类型中也存在这样一个 `private`成员， 并且它们都是来自同一处声明时，我们才认为这两个类型是兼容的。 对于 `protected`成员也使用这个规则。
 
-## 理解 `protected`
+### 理解 `protected`
 
 `protected`修饰符与 `private`修饰符的行为很相似，但有一点不同， `protected`成员在派生类中仍然可以访问。
 
@@ -640,15 +521,15 @@ console.log(howard.name); // 错误
 
 构造函数也可以被标记成 `protected`。 这意味着这个类不能在包含它的类外被实例化，但是能被继承。
 
-## readonly修饰符
+### readonly修饰符
 
 你可以使用 `readonly`关键字将属性设置为只读的。 只读属性必须在声明时或构造函数里被初始化。
 
-## 存取器
+### 存取器
 
 首先，存取器要求你将编译器设置为输出ECMAScript 5或更高。 不支持降级到ECMAScript 3。 其次，只带有 `get`不带有 `set`的存取器自动被推断为 `readonly`。 这在从代码生成 `.d.ts`文件时是有帮助的，因为利用这个属性的用户会看到不允许够改变它的值。
 
-## 抽象类
+### 抽象类
 
 抽象类做为其它派生类的基类使用。 它们一般不会直接被实例化。 不同于接口，抽象类可以包含成员的实现细节。 `abstract`关键字是用于定义抽象类和在抽象类内部定义抽象方法。
 
@@ -688,13 +569,13 @@ department.printMeeting();
 department.generateReports(); // 错误: 方法在声明的抽象类中不存在
 ```
 
-# 函数
+## 函数
 
 对于返回值，我们在函数和返回值类型之前使用( `=>`)符号，使之清晰明了。 如之前提到的，返回值类型是函数类型的必要部分，如果函数没有返回任何值，你也必须指定返回值类型为 `void`而不能留空。
 
-## 重载
+### 重载
 
-# 泛型
+### 泛型
 
 ```typescript
 function identity<T>(arg: T): T {
@@ -716,7 +597,7 @@ function loggingIdentity<T>(arg: Array<T>): Array<T> {
 }
 ```
 
-## 泛型类
+### 泛型类
 
 ```typescript
 class GenericNumber<T> {
@@ -731,7 +612,7 @@ myGenericNumber.add = function(x, y) { return x + y; };
 
 泛型类指的是实例部分的类型，所以类的静态属性不能使用这个泛型类型
 
-## 泛型约束
+### 泛型约束
 
 ```typescript
 interface Lengthwise {
@@ -744,7 +625,7 @@ function loggingIdentity<T extends Lengthwise>(arg: T): T {
 }
 ```
 
-## 在泛型里使用类类型
+### 在泛型里使用类类型
 
 ```typescript
 function create<T>(c: {new(): T; }): T {
@@ -779,9 +660,9 @@ createInstance(Lion).keeper.nametag;  // typechecks!
 createInstance(Bee).keeper.hasMask;   // typechecks!
 ```
 
-# 枚举
+## 枚举
 
-## 运行时的枚举
+### 运行时的枚举
 
 枚举是在运行时真正存在的对象。 例如下面的枚举：
 
@@ -837,7 +718,7 @@ let directions = [Directions.Up, Directions.Down, Directions.Left, Directions.Ri
 var directions = [0 /* Up */, 1 /* Down */, 2 /* Left */, 3 /* Right */];
 ```
 
-## 外部枚举
+### 外部枚举
 
 外部枚举用来描述已经存在的枚举类型的形状。
 
@@ -851,7 +732,7 @@ declare enum Enum {
 
 外部枚举和非外部枚举之间有一个重要的区别，在正常的枚举里，没有初始化方法的成员被当成常数成员。 对于非常数的外部枚举而言，没有初始化方法时被当做需要经过计算的。
 
-## 类型兼容性
+### 类型兼容性
 
 TypeScript的类型系统允许某些在编译阶段无法确认其安全性的操作。
 
@@ -891,17 +772,17 @@ greet(y); // OK
 
 泛型无所谓
 
-# 高级类型
+## 高级类型
 
-## 交叉类型（Intersection Types）
+### 交叉类型（Intersection Types）
 
 交叉类型是将多个类型合并为一个类型。 这让我们可以把现有的多种类型叠加到一起成为一种类型，它包含了所需的所有类型的特性。 例如， `Person & Serializable & Loggable`同时是 `Person` *和* `Serializable` *和* `Loggable`。 就是说这个类型的对象同时拥有了这三种类型的成员。
 
-## 类型别名
+### 类型别名
 
 type
 
-## 接口 vs. 类型别名
+### 接口 vs. 类型别名
 
 像我们提到的，类型别名可以像接口一样；然而，仍有一些细微差别。
 
@@ -920,7 +801,7 @@ declare function interfaced(arg: Interface): Interface;
 
 另一方面，如果你无法通过接口来描述一个类型并且需要使用联合类型或元组类型，这时通常会使用类型别名。
 
-## 索引类型和字符串索引签名
+### 索引类型和字符串索引签名
 
 `keyof`和 `T[K]`与字符串索引签名进行交互。 如果你有一个带有字符串索引签名的类型，那么 `keyof T`会是 `string`。 并且 `T[string]`为索引签名的类型：
 
@@ -932,13 +813,13 @@ let keys: keyof Map<number>; // string
 let value: Map<number>['foo']; // number
 ```
 
-## 声明合并
+### 声明合并
 
 interface、
 
 namespace
 
-## 装饰器
+### 装饰器
 
 ```tsx
 function f() {
@@ -971,7 +852,7 @@ g(): called
 f(): called
 ```
 
-## 装饰器求值
+### 装饰器求值
 
 类中不同声明上的装饰器将按以下规定的顺序应用：
 
@@ -980,9 +861,7 @@ f(): called
 3. *参数装饰器*应用到构造函数。
 4. *类装饰器*应用到类。
 
-
-
-## Partial<Type>
+### Partial<Type>
 
 构造一个所有属性都`Type`设置为可选的类型。此实用程序将返回一个表示给定类型的所有子集的类型。
 
@@ -1006,7 +885,7 @@ const todo2 = updateTodo(todo1, {
 });
 ```
 
-## Required<Type>
+### Required<Type>
 
 ```
 interface Props {
@@ -1355,5 +1234,4 @@ function toArray<X>(xs: Iterable<X>): X[] {
   return [...xs]
 }
 ```
-
 

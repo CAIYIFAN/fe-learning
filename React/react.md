@@ -7153,3 +7153,168 @@ ReactDOM.render(<BookStoreView bookStore={store} />, document.getElementById('ap
 
 上文提到，Mobx 只专注于从 `store` 到 `view` 的过程，所以业务逻辑的规划没有一定的标准遵循，社区目前也没有很好的最佳实践，需要开发者们在实际开发中积累经验，规划好代码。
 
+### useReducer
+
+```
+const CTX = React.createContext(null);
+const reducer = (state, action) => {
+    switch(action.type) {
+        default:
+            reutrn state;
+    }
+}
+const Context = function({ children }) {
+    const [state, dispatch] = useReducer(reducer, {});
+    return (
+        <CTX.Provider value={ state, dispatch }>
+            {children}
+        </CTX.Provider>
+    )
+}
+```
+
+## Hook实践
+
+#### 双向数据绑定
+
+```
+const useInput = () => {
+  const [value, setValue] = useState('');
+  const onChange = val => {
+    setValue(val.target.value);
+  };
+  return {
+    value,
+    onChange
+  };
+};
+```
+
+### 表单提交
+
+```
+export const useSubmit = submitFunction => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [res, setRes] = useState(null);
+
+  const trigger = useCallback(() => {
+    try {
+      if (_.isFunction(submitFunction)) {
+        (async () => {
+          let res = await submitFunction();
+          if (res) {
+            setRes(res);
+          }
+        })();
+      }
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(true);
+    }
+  }, [submitFunction]);
+
+  return [loading, res, error];
+};
+```
+
+### 利用 useMemo 操作 props 数据
+
+```
+import React, { useMemo } from 'react';
+
+function App({ data }) {
+    // 只有 data 更新时重新计算
+    const info = useMemo(() => {
+        // 对 data 进行一系列的计算操作
+        return newData;
+    }, [data]);
+}
+```
+
+### 利用 hooks 返回组件
+
+```
+import React, { useState, useCallback } from 'react';
+import { Modal } from 'antd';
+
+export default function useModal() {
+  const [show, setShow] = useState<boolean>(false);
+
+  const openModal = useCallback(() => {
+    setShow(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setShow(false);
+  }, []);
+
+  const CusModal: React.SFC = ({ children, ...props }) => {
+    return (
+      <Modal
+        visible={show}
+        {...props}>
+        {children}
+      </Modal>
+    )
+  }
+
+  return {
+    show,
+    setShow,
+    openModal,
+    closeModal,
+    CusModal
+  }
+}
+```
+
+### 利用 ref 记录停留时间(无侵入埋点)
+
+```
+export const useHoverTime = eventName => {
+  const EV = `${ eventName}`;
+  const ref = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem(EV, 0);
+    return () => {
+      const time = localStorage.getItem(EV);
+      // do something 
+      localStorage.setItem(EV, null);
+    };
+  }, []);
+
+  useEffect(() => {
+    let startTime = null;
+    let endTime = null;
+    const overHandler = () => {
+      startTime = new Date();
+    };
+    const outHandler = () => {
+      endTime = new Date();
+      localStorage.setItem(
+        EV,
+        parseInt(localStorage.getItem(EV)) +
+        parseInt(endTime - startTime)
+      );
+      startTime = 0;
+      endTime = 0;
+    };
+    if (ref.current) {
+      ref.current.addEventListener('mouseover', overHandler);
+      ref.current.addEventListener('mouseout', outHandler);
+    }
+    return () => {
+      if (ref.current) {
+        ref.current.removeEventListener('mouseover', overHandler);
+        ref.current.removeEventListener('mouseout', outHandler);
+      }
+    };
+  }, [ref]);
+  return ref;
+};
+```
+
+### 

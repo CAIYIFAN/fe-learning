@@ -1,9 +1,3 @@
----
-title: 前端性能优化
-date: 2021-02-15 21:57:39
-tags: 前端优化
----
-
 ## 前端性能优化
 
 ### 网络相关
@@ -115,3 +109,19 @@ tags: 前端优化
 4. 善用webpack-bundle-analyzer优化项目依赖
 
 5. 服务端开启 gzip压缩
+
+
+
+cdn
+
+index.html为协商缓存
+
+css、js为强缓存；
+
+因为生成的html为hash引用，只需要改变index.html就够了
+
+
+
+```xml
+ <link rel="dns-prefetch" href="https://lf-cdn-tos.bytescm.com/">
+```

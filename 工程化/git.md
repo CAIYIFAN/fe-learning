@@ -1,8 +1,3 @@
----
-title: git基础学习
-date: 2021-02-16 00:30:27
-tags: git
----
 ### 1.git初始化一个项目到本地
 
 克隆远端仓库：git clone + 远端git地址
