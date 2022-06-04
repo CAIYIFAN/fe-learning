@@ -7316,5 +7316,3 @@ export const useHoverTime = eventName => {
   return ref;
 };
 ```
-
-### 
